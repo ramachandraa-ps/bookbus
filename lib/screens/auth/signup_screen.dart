@@ -7,23 +7,27 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/custom_text_field.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  bool _acceptTerms = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -47,14 +51,38 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  // Handle login
-  Future<void> _login() async {
+  // Validate confirm password
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please confirm your password';
+    } else if (value != _passwordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  // Handle signup
+  Future<void> _signup() async {
     FocusScope.of(context).unfocus(); // Hide keyboard
+
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms and Conditions'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      final success = await authProvider.signIn(
+      // Use email as name for simplicity
+      final name = _emailController.text.split('@').first;
+
+      final success = await authProvider.signUp(
+        name: name,
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -75,55 +103,73 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppConstants.backgroundColor,
       body: Stack(
         children: [
-          // Background image with gradient
+          // Background image
           Container(
-            height: size.height * 0.5,
+            height: size.height * 0.35,
             decoration: BoxDecoration(
               color: AppConstants.primaryColor,
               image: const DecorationImage(
                 image: NetworkImage(
-                    'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=1000'),
+                    'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?q=80&w=1000'),
                 fit: BoxFit.cover,
-                opacity: 0.3,
+                opacity: 0.25,
               ),
             ),
           ),
 
-          // App logo and title
-          Positioned(
-            top: size.height * 0.15,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Icon(
-                  Icons.directions_bus_rounded,
-                  size: 80,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  AppConstants.appName,
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+          // Back button
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  // Clear error when navigating
+                  authProvider.clearError();
+                  context.go(AppRoutes.login);
+                },
+              ),
             ),
           ),
 
-          // Login form
+          // Content
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: size.height * 0.35),
+                  SizedBox(height: size.height * 0.08),
+
+                  // Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Create an account to continue',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
 
                   // Form Card
                   Container(
-                    margin: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -141,17 +187,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Title
-                          const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-
                           // Error message
                           if (authProvider.error != null)
                             Container(
@@ -173,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           if (authProvider.error != null)
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
 
                           // Email Field
                           CustomTextField(
@@ -207,32 +242,88 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
 
-                          // Login Button
-                          PrimaryButton(
-                            text: 'Login',
-                            onPressed: _login,
-                            isLoading: authProvider.isLoading,
+                          // Confirm Password Field
+                          CustomTextField(
+                            controller: _confirmPasswordController,
+                            label: 'Confirm Password',
+                            hint: 'Confirm your password',
+                            obscureText: !_isConfirmPasswordVisible,
+                            validator: _validateConfirmPassword,
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordVisible
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordVisible =
+                                      !_isConfirmPasswordVisible;
+                                });
+                              },
+                            ),
                           ),
                           const SizedBox(height: 16),
 
-                          // Register Link
+                          // Terms and Conditions
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: _acceptTerms,
+                                  activeColor: AppConstants.primaryColor,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _acceptTerms = value ?? false;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'I agree to the Terms & Conditions',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Signup Button
+                          PrimaryButton(
+                            text: 'Create Account',
+                            onPressed: _signup,
+                            isLoading: authProvider.isLoading,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Login Link
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Don\'t have an account?',
+                                'Already have an account?',
                                 style: AppConstants.captionStyle,
                               ),
                               TextButton(
                                 onPressed: () {
                                   // Clear error when navigating
                                   authProvider.clearError();
-                                  context.go(AppRoutes.signup);
+                                  context.go(AppRoutes.login);
                                 },
                                 child: Text(
-                                  'Sign Up',
+                                  'Login',
                                   style: TextStyle(
                                     color: AppConstants.primaryColor,
                                     fontWeight: FontWeight.bold,

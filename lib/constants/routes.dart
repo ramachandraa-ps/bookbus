@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/signup_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/booking_screen.dart';
 import '../screens/payment_screen.dart';
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String signup = '/signup';
   static const String home = '/home';
   static const String booking = '/booking';
   static const String payment = '/payment';
@@ -28,8 +30,9 @@ class AppRoutes {
       redirect: (context, state) {
         // Check if the user is authenticated
         final isAuthenticated = authProvider.isAuthenticated;
-        final isLoggingIn =
-            state.matchedLocation == login || state.matchedLocation == register;
+        final isLoggingIn = state.matchedLocation == login ||
+            state.matchedLocation == register ||
+            state.matchedLocation == signup;
         final isSplash = state.matchedLocation == splash;
 
         // If the user is not authenticated, redirect to login
@@ -54,6 +57,10 @@ class AppRoutes {
         GoRoute(
           path: register,
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: signup,
+          builder: (context, state) => const SignupScreen(),
         ),
         GoRoute(path: home, builder: (context, state) => const HomeScreen()),
         GoRoute(
