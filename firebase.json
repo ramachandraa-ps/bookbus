@@ -1,0 +1,37 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "bookbus-b4815",
+          "appId": "1:804312735358:android:4941dd48e4949fdafb822f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "bookbus-b4815",
+          "configurations": {
+            "android": "1:804312735358:android:4941dd48e4949fdafb822f",
+            "ios": "1:804312735358:ios:8e942b5e72bd4fc3fb822f",
+            "macos": "1:804312735358:ios:8e942b5e72bd4fc3fb822f",
+            "web": "1:804312735358:web:674cde7feea47b57fb822f",
+            "windows": "1:804312735358:web:78520b4a80114789fb822f"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData"
+    }
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

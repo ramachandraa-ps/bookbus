@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "804312735358",
+    "project_id": "bookbus-b4815",
+    "storage_bucket": "bookbus-b4815.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804312735358:android:4941dd48e4949fdafb822f",
+        "android_client_info": {
+          "package_name": "com.example.bookbus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8_l1PUwvIX-yrEXbuuqInenEygyiLUNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
